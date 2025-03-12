@@ -88,17 +88,23 @@ Formatting and Language:
     prompt = instructions + "\\n" + contents + "\\n" + file_contents
 
     # Tokenize and truncate if necessary
-    token_count = count_tokens(prompt)
-    if token_count > 2048:
-        prompt = prompt[:2048]  # Truncate to the first 2048 tokens
-        return "Error: Prompt exceeds token limit. Prompt was truncated."
+    # token_count = count_tokens(prompt)
+    # if token_count > 2048:
+    #     prompt = prompt[:2048]  # Truncate to the first 2048 tokens
+    #     return "Error: Prompt exceeds token limit. Prompt was truncated."
 
     # Send prompt to Gemini API
+
     try:
-        response = model.generate_content(prompt)
-        return response.text
+        message = ""
+        # Enable streaming responses by setting stream=True.
+        response = model.generate_content(prompt, stream=True)
+        # As each chunk arrives, update and yield the concatenated message.
+        for chunk in response:
+            message += chunk.text
+            yield message
     except Exception as e:
-        return f"Error: {e}"
+        yield f"Error: {e}"
 
 # Chat interface
 file_input = pn.widgets.FileInput(accept='.doc,.docx,.csv,.xls,.xlsx,.pdf,.txt')
